@@ -1,6 +1,6 @@
 #数据库配置
 ## 测试数据库配置
-jdbcUrl=jdbc:mysql://192.168.3.133:3306/yiyixiaozhi?zeroDateTimeBehavior=convertToNull
+jdbcUrl=jdbc:mysql://192.168.3.133:3306/yiyixiaozhi?zeroDateTimeBehavior=convertToNull&useUnicode=true&characterEncoding=utf-8
 user = root
 password = root
 devMode = true
@@ -15,3 +15,8 @@ Uri=http://bxh7425014.vicp.cc
 appId=wx548b592be1b05b62
 appSecret=72512d739ad5ceda7a5962d6eee35aa2
 YYXZ_Token=yiyixiaozhi
+
+# 一一小知测试号配置
+#appId=wx00222e361fdea5f4
+#appSecret=3f1ea1d93b591ee71d68347e7976e52c
+#YYXZ_Token=yiyixiaozhi

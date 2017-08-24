@@ -2,11 +2,7 @@ package com.yyxz.controller;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -15,8 +11,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.jfinal.core.Controller;
-import com.jfinal.kit.PropKit;
 import com.thoughtworks.xstream.XStream;
+import com.yyxz.model.Operation;
+import com.yyxz.model.Shops;
+import com.yyxz.model.User;
 import com.yyxz.weixin.ImageMessage;
 import com.yyxz.weixin.InputMessage;
 import com.yyxz.weixin.OutputMessage;
@@ -24,6 +22,11 @@ import com.yyxz.weixin.SerializeXmlUtil;
 import com.yyxz.weixin.WXEventType;
 
 public class WXController extends Controller {
+	private static final int QUERY_STATUS = 1;	// 查询状态码
+	private static final int NEW_SHOP = 2;	// 新建商品
+	private static final int MODIFY_SHOP = 3;	// 修改商品
+	private static final int QUERY_SHOP = 4;	// 新建商品
+	
 	/**
 	 * 微信回调的接口
 	 */
@@ -102,36 +105,76 @@ public class WXController extends Controller {
 		outputMsg.setCreateTime(returnTime);
 		outputMsg.setMsgType(msgType);
 		switch (WXEventType.MsgType.valueOf(msgType)) {// 取得消息类型  
-		case event:
-			switch (WXEventType.Event.valueOf(inputMsg.getEvent())) {
-			case CLICK:
-				outputMsg.setMsgType(WXEventType.MsgType.text.toString());
-				switch (WXEventType.MenuEventKey.valueOf(inputMsg.getEventKey())) {
-				case register_bind:
-					outputMsg.setContent("注册/绑定");
+		case text:
+			User user = User.dao.checkUserByOpenId(inputMsg.getFromUserName());
+			String msg = inputMsg.getContent();
+			Integer status = null;
+			try {
+				status = Integer.valueOf(msg);
+			}catch (NumberFormatException e) {
+				//e.printStackTrace();
+			}
+			String help = "";
+			System.out.println("用户发送状态码：" + status);
+			if (status == null) {	// 文本消息
+				Integer operationId = user.getInt("operation_id");	// 从数据库获取当前状态码，根据状态码解析文本消息
+				help += "当前状态：" + operationId + "\n";
+				System.out.println("查询到用户：" + user);
+				Operation op = Operation.dao.findById(operationId);
+				switch (operationId) {
+				case NEW_SHOP:
+					String shopName = msg;
+					if (shopName.length() > 50) {
+						help += "名称必须50字以内";
+					} else {
+						Shops shop = new Shops().set("user_id", user.get("id")).set("name", shopName);
+						shop.save();
+						help += "新增商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
+					}
 					break;
-				case checkin_online:
-					outputMsg.setContent("线上签到");
-					break;
-				case my_order:
-					outputMsg.setContent("观看更多课程，请使用电脑访问<a href=\"www.zqgbzx.cn\">www.zqgbzx.cn</a>");
-					break;
-				case my_activities:
-					outputMsg.setContent("联系客服\n客服：沈建强\nQQ：64391880\n座机：88568252-827\n客服：陶媛媛\nQQ： 252871148\n座机：88568252-813");
-					break;
-				case online_party_school_app:
-					outputMsg.setContent("请使用电脑访问<a href=\"www.zqgbzx.cn\">www.zqgbzx.cn</a>");
+				case MODIFY_SHOP:
+					String[] arrayStr = msg.split("\n");
+					try {
+						Long shopId = Long.valueOf(arrayStr[0]); // 商品编号
+						String sName = arrayStr[1];	// 商品名称
+						Shops sp = Shops.dao.findById(shopId);
+						sp.set("name", sName).update();
+						help += "更新商品成功。" + "\n名称：" + sp.getStr("name") + "\n编号：" + sp.getLong("id") + "\n";
+					} catch (Exception e) {
+						help += "输入格式不正确";
+					}
 					break;
 				default:
+					help = op.getStr("operation_help");
 					break;
 				}
-				break;
-			default:
-				break;
+			} else {	// 数字/状态码消息
+				Operation op = Operation.dao.findById(status);
+				if (op != null) {	// 数据库有用户输入的这个状态码
+					help += "切换到状态：" + status + "\n";
+					user.set("operation_id", status).update();
+					help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户状态码提示语
+					switch (status) {
+					case QUERY_STATUS:
+						break;
+					case MODIFY_SHOP:
+						
+						break;
+					case QUERY_SHOP:
+						List<Shops> shopList = Shops.dao.find("select * from t_shops where user_id = ?", user.get("id"));
+						for (Shops shop : shopList) {
+							help += "\n{商品编号：" + shop.getLong("id") + "\n商品名称：" + shop.getStr("name") + "}";
+						}
+						break;
+					default:
+						break;
+					}
+				} else {
+					help = "无此状态码：" + status + "\n输入数字1查询状态码";
+				}
 			}
-			break;
-		case text:
-			outputMsg.setContent("你留言：" + inputMsg.getContent() + " 吗？");
+			outputMsg.setContent(help);
+//			outputMsg.setContent("你留言：" + inputMsg.getContent() + " 吗？");
 			break;
 		case image: // 获取并返回多图片消息
 			System.out.println("获取多媒体信息");

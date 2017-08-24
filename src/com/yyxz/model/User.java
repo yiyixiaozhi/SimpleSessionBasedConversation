@@ -23,7 +23,7 @@ public class User extends Model<User> {
 	 * @return
 	 */
 	public User checkUserByOpenId(String openId) {
-		String sql = "select id from t_user where openid = ?";
+		String sql = "select id, operation_id from t_user where openid = ?";
 		User user = dao.findFirst(sql, openId);
 		if (user == null) {
 			user = new User().set("openid", openId);
