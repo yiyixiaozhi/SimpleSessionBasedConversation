@@ -26,6 +26,7 @@ public class WXController extends Controller {
 	private static final int NEW_SHOP = 2;	// 新建商品
 	private static final int MODIFY_SHOP = 3;	// 修改商品
 	private static final int QUERY_SHOP = 4;	// 新建商品
+	private static final int DELETE_SHOP = 5; // 删除商品
 	
 	/**
 	 * 微信回调的接口
@@ -121,31 +122,61 @@ public class WXController extends Controller {
 				help += "当前状态：" + operationId + "\n";
 				System.out.println("查询到用户：" + user);
 				Operation op = Operation.dao.findById(operationId);
+				String[] arrayStr;
+				Shops shop;
+				Long shopId;
+				String shopName;
+				Long shopOwner;
 				switch (operationId) {
 				case NEW_SHOP:
-					String shopName = msg;
+					shopName = msg;
 					if (shopName.length() > 50) {
 						help += "名称必须50字以内";
 					} else {
-						Shops shop = new Shops().set("user_id", user.get("id")).set("name", shopName);
+						shop = new Shops().set("user_id", user.get("id")).set("name", shopName);
 						shop.save();
 						help += "新增商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
 					}
 					break;
 				case MODIFY_SHOP:
-					String[] arrayStr = msg.split("\n");
+					arrayStr = msg.split("\n");
 					try {
-						Long shopId = Long.valueOf(arrayStr[0]); // 商品编号
+						shopId = Long.valueOf(arrayStr[0]); // 商品编号
 						String sName = arrayStr[1];	// 商品名称
 						Shops sp = Shops.dao.findById(shopId);
-						sp.set("name", sName).update();
-						help += "更新商品成功。" + "\n名称：" + sp.getStr("name") + "\n编号：" + sp.getLong("id") + "\n";
+						shopOwner = sp.getLong("user_id");
+						if (user.getLong("id") == shopOwner) {
+							sp.set("name", sName).update();
+							help += "更新商品成功。" + "\n名称：" + sp.getStr("name") + "\n编号：" + sp.getLong("id") + "\n";
+						} else {
+							help += "只有创建者才能管理此商品";
+						}
 					} catch (Exception e) {
 						help += "输入格式不正确";
 					}
 					break;
+				case DELETE_SHOP:
+					arrayStr = msg.split("\n");
+					if (arrayStr[0].equals("d")) {
+						try {
+							shopId = Long.valueOf(arrayStr[1]); // 商品编号
+							shop = Shops.dao.findById(shopId);
+							shopOwner = shop.getLong("user_id");
+							if (user.getLong("id") == shopOwner) {
+								shop.delete();
+								help += "删除商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
+							} else {
+								help += "只有创建者才能管理此商品";
+							}
+						} catch (Exception e) {
+							help += "输入格式不正确";
+						}
+					} else {
+						help += "输入格式不正确";
+					}
+					break;
 				default:
-					help = op.getStr("operation_help");
+					help += op.getStr("operation_help");
 					break;
 				}
 			} else {	// 数字/状态码消息
