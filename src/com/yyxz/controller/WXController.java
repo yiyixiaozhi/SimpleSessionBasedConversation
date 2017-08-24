@@ -134,7 +134,7 @@ public class WXController extends Controller {
 			}
 			break;
 		case text:
-			outputMsg.setContent("你说的是：" + inputMsg.getContent() + " 吗？");
+			outputMsg.setContent("你留言：" + inputMsg.getContent() + " 吗？");
 			break;
 		case image: // 获取并返回多图片消息
 			System.out.println("获取多媒体信息");

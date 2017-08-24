@@ -7,7 +7,7 @@ devMode = true
 driverClass = com.mysql.jdbc.Driver
 
 #微信认证拦截配置
-#authUrl=/api/test/toAPage,/api/test/toBPage
+authUrl=/api/test/toAPage,/api/test/toBPage
 redirectUri=http://bxh7425014.vicp.cc/yiyixiaozhi/api/user/callBack
 Uri=http://bxh7425014.vicp.cc
 
