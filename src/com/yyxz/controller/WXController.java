@@ -24,9 +24,6 @@ import com.yyxz.weixin.SerializeXmlUtil;
 import com.yyxz.weixin.WXEventType;
 
 public class WXController extends Controller {
-//	private String Token = "zqzx_bianxiaohui";
-//	private String Token = "zqzx_bianxiaohui_test";
-	
 	/**
 	 * 微信回调的接口
 	 */
