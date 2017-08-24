@@ -17,6 +17,12 @@ import com.jfinal.template.Engine;
 import com.yyxz.controller.IndexController;
 import com.yyxz.controller.WXController;
 import com.yyxz.interceptor.AuthInterceptor;
+import com.yyxz.model.Operation;
+import com.yyxz.model.Purchase;
+import com.yyxz.model.Sale;
+import com.yyxz.model.Shops;
+import com.yyxz.model.Stock;
+import com.yyxz.model.User;
 
 /**
  * Created by Czl on 2015/7/21.
@@ -49,7 +55,12 @@ public class DemoConfig extends JFinalConfig {
 		ActiveRecordPlugin arp = new ActiveRecordPlugin(aDruidPlugin);
 		arp.setDialect(new MysqlDialect());
 		me.add(arp);
-//		arp.addMapping("t_student", Student.class); // 映射
+		arp.addMapping("t_user", User.class);
+		arp.addMapping("t_operation", Operation.class);
+		arp.addMapping("t_purchase", Purchase.class);
+		arp.addMapping("t_sale", Sale.class);
+		arp.addMapping("t_shops", Shops.class);
+		arp.addMapping("t_stock", Stock.class);
 	}
 
 	public void configInterceptor(Interceptors me) {
