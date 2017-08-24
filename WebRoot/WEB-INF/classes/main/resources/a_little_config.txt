@@ -1,0 +1,17 @@
+#数据库配置
+## 测试数据库配置
+jdbcUrl=jdbc:mysql://192.168.3.133:3306/yiyixiaozhi?zeroDateTimeBehavior=convertToNull
+user = root
+password = root
+devMode = true
+driverClass = com.mysql.jdbc.Driver
+
+#微信认证拦截配置
+#authUrl=/api/test/toAPage,/api/test/toBPage
+redirectUri=http://bxh7425014.vicp.cc/yiyixiaozhi/api/user/callBack
+Uri=http://bxh7425014.vicp.cc
+
+# 一一小知微信正式号配置
+appId=wx548b592be1b05b62
+appSecret=72512d739ad5ceda7a5962d6eee35aa2
+YYXZ_Token=yiyixiaozhi
