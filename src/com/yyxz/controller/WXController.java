@@ -27,7 +27,7 @@ public class WXController extends Controller {
 	private static final int MODIFY_SHOP = 3;	// 修改商品
 	private static final int QUERY_SHOP = 4;	// 查询商品
 	private static final int DELETE_SHOP = 5; // 删除商品
-	
+	private static final String URL_HEAD = "http://bxh7425014.vicp.cc/yiyixiaozhi";
 	/**
 	 * 微信回调的接口
 	 */
@@ -192,10 +192,7 @@ public class WXController extends Controller {
 						
 						break;
 					case QUERY_SHOP:
-						List<Shops> shopList = Shops.dao.find("select * from t_shops where user_id = ?", user.get("id"));
-						for (Shops shop : shopList) {
-							help += "\n{商品编号：" + shop.getLong("id") + "\n商品名称：" + shop.getStr("name") + "}";
-						}
+						help += "\n<a href=\"" + URL_HEAD + "/api/shops/toShopsPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
 						break;
 					default:
 						break;
