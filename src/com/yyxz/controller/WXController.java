@@ -25,7 +25,7 @@ public class WXController extends Controller {
 	private static final int QUERY_STATUS = 1;	// 查询状态码
 	private static final int NEW_SHOP = 2;	// 新建商品
 	private static final int MODIFY_SHOP = 3;	// 修改商品
-	private static final int QUERY_SHOP = 4;	// 新建商品
+	private static final int QUERY_SHOP = 4;	// 查询商品
 	private static final int DELETE_SHOP = 5; // 删除商品
 	
 	/**

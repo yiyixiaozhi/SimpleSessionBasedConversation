@@ -15,6 +15,7 @@ import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.template.Engine;
 import com.yyxz.controller.IndexController;
+import com.yyxz.controller.ShopController;
 import com.yyxz.controller.WXController;
 import com.yyxz.interceptor.AuthInterceptor;
 import com.yyxz.model.Operation;
@@ -38,6 +39,7 @@ public class DemoConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
 		me.add("/api/weixin", WXController.class);
+		me.add("/api/shops", ShopController.class);
 	}
 
 	public void configPlugin(Plugins me) {
