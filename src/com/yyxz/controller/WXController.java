@@ -5,7 +5,6 @@ import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
@@ -14,7 +13,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.jfinal.core.Controller;
 import com.thoughtworks.xstream.XStream;
 import com.yyxz.model.Operation;
-import com.yyxz.model.Shops;
+import com.yyxz.model.Purchase;
+import com.yyxz.model.Sale;
+import com.yyxz.model.Shop;
+import com.yyxz.model.Stock;
 import com.yyxz.model.User;
 import com.yyxz.weixin.ImageMessage;
 import com.yyxz.weixin.InputMessage;
@@ -28,6 +30,16 @@ public class WXController extends Controller {
 	private static final int MODIFY_SHOP = 3;	// 修改商品
 	private static final int QUERY_SHOP = 4;	// 查询商品
 	private static final int DELETE_SHOP = 5; // 删除商品
+	private static final int CREATE_PURCHASE = 6; // 新增进货记录
+	private static final int DELETE_PURCHASE = 7; // 删除进货记录
+	private static final int MODIFY_PURCHASE = 8; // 修改进货记录
+	private static final int QUERY_PURCHASE = 9; // 查询进货记录
+	private static final int CREATE_SALE = 10; // 新增销售记录
+	private static final int DELETE_SALE = 11; // 删除销售记录
+	private static final int MODIFY_SALE = 12; // 修改销售记录
+	private static final int QUERY_SALE = 13; // 查询销售记录
+	private static final int QUERY_STOCK = 14; // 查询库存记录
+	
 	private static final String URL_HEAD = "http://bxh7425014.vicp.cc/yiyixiaozhi";
 	/**
 	 * 微信回调的接口
@@ -109,6 +121,7 @@ public class WXController extends Controller {
 		switch (WXEventType.MsgType.valueOf(msgType)) {// 取得消息类型  
 		case text:
 			User user = User.dao.checkUserByOpenId(inputMsg.getFromUserName());
+			Long userId = user.getLong("id");
 			String msg = inputMsg.getContent();
 			Integer status = null;
 			try {
@@ -123,8 +136,8 @@ public class WXController extends Controller {
 				help += "当前状态：" + operationId + "\n";
 				System.out.println("查询到用户：" + user);
 				Operation op = Operation.dao.findById(operationId);
-				String[] arrayStr;
-				Shops shop;
+				String[] arrayStr = msg.split("\n");
+				Shop shop;
 				Long shopId;
 				String shopName;
 				Long shopOwner;
@@ -134,18 +147,17 @@ public class WXController extends Controller {
 					if (shopName.length() > 50) {
 						help += "名称必须50字以内";
 					} else {
-						shop = new Shops().set("user_id", user.get("id")).set("name", shopName)
+						shop = new Shop().set("user_id", user.get("id")).set("name", shopName)
 								.set("update_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 						shop.save();
 						help += "新增商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
 					}
 					break;
 				case MODIFY_SHOP:
-					arrayStr = msg.split("\n");
 					try {
 						shopId = Long.valueOf(arrayStr[0]); // 商品编号
 						String sName = arrayStr[1];	// 商品名称
-						Shops sp = Shops.dao.findById(shopId);
+						Shop sp = Shop.dao.findById(shopId);
 						shopOwner = sp.getLong("user_id");
 						if (user.getLong("id") == shopOwner) {
 							sp.set("name", sName).set("update_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())).update();
@@ -162,13 +174,165 @@ public class WXController extends Controller {
 					if (arrayStr[0].equals("d")) {
 						try {
 							shopId = Long.valueOf(arrayStr[1]); // 商品编号
-							shop = Shops.dao.findById(shopId);
+							shop = Shop.dao.findById(shopId);
 							shopOwner = shop.getLong("user_id");
 							if (user.getLong("id") == shopOwner) {
 								shop.delete();
 								help += "删除商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
 							} else {
 								help += "只有创建者才能管理此商品";
+							}
+						} catch (Exception e) {
+							help += "输入格式不正确";
+						}
+					} else {
+						help += "输入格式不正确";
+					}
+					break;
+				case CREATE_PURCHASE:
+					// 商品编号+进货总价+进货数量+客户名称
+					try {
+						Long createPurchaseShopId = Long.valueOf(arrayStr[0]);
+						Integer createPurchasePrice = Integer.valueOf(arrayStr[1]);
+						Integer createPurchaseNum = Integer.valueOf(arrayStr[2]);
+						String createPurchaseClientName = arrayStr[3];
+						if (createPurchaseClientName.length() > 20) {
+							help += "客户名称必须20字以内";
+						} else {
+							Purchase createPurchase = new Purchase().set("shop_id",createPurchaseShopId)
+									.set("purchase_price", createPurchasePrice)
+									.set("purchase_num", createPurchaseNum)
+									.set("client_name", createPurchaseClientName)
+									.set("purchase_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+									.set("user_id", user.get("id"));
+							createPurchase.save();
+							help += "新增进货成功:" + createPurchase;
+							updateStock(createPurchaseShopId, userId);
+							help += "\n库存已更新";
+						}
+					} catch (Exception e) {
+						help += "输入格式不正确";
+					}
+					break;
+				case MODIFY_PURCHASE:
+					// 进货编号+进货总价+进货数量+客户名称
+					try {
+						Long modifyPurchaseId = Long.valueOf(arrayStr[0]);
+						Integer modifyPurchasePrice = Integer.valueOf(arrayStr[1]);
+						Integer modifyPurchaseNum = Integer.valueOf(arrayStr[2]);
+						String modifyPurchaseClientName = arrayStr[3];
+						if (modifyPurchaseClientName.length() > 20) {
+							help += "客户名称必须20字以内";
+						} else {
+							Purchase modifyPurchase = Purchase.dao.findById(modifyPurchaseId);
+							Long modifyPurchaseOwner = modifyPurchase.getLong("user_id");
+							if (user.getLong("id") == modifyPurchaseOwner) {
+								modifyPurchase.set("purchase_price", modifyPurchasePrice)
+								.set("purchase_num", modifyPurchaseNum)
+								.set("client_name", modifyPurchaseClientName)
+								.set("purchase_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+								.update();
+								help += "更新进货成功:" + modifyPurchase;
+								updateStock(modifyPurchase.getLong("shop_id"), userId);
+								help += "\n库存已更新";
+							} else {
+								help += "只有创建者才能管理此商品";
+							}
+						}
+					} catch (Exception e) {
+						help += "输入格式不正确";
+					}
+					break;
+				case DELETE_PURCHASE:
+					arrayStr = msg.split("\n");
+					if (arrayStr[0].equals("d")) {
+						try {
+							Long deletePurchaseId = Long.valueOf(arrayStr[1]); // 进货编号
+							Purchase deletePurchase = Purchase.dao.findById(deletePurchaseId);
+							Long deletePurchaseOwner = deletePurchase.getLong("user_id");
+							if (user.getLong("id") == deletePurchaseOwner) {
+								deletePurchase.delete();
+								help += "删除商品成功。\n" + deletePurchase;
+								updateStock(deletePurchase.getLong("shop_id"), userId);
+								help += "\n库存已更新";
+							} else {
+								help += "只有创建者才能管理此进货";
+							}
+						} catch (Exception e) {
+							help += "输入格式不正确";
+						}
+					} else {
+						help += "输入格式不正确";
+					}
+					break;
+				case CREATE_SALE:
+					// 商品编号+销售总价+销售数量+客户名称
+					try {
+						Long createSaleShopId = Long.valueOf(arrayStr[0]);
+						Integer createSalePrice = Integer.valueOf(arrayStr[1]);
+						Integer createSaleNum = Integer.valueOf(arrayStr[2]);
+						String createSaleClientName = arrayStr[3];
+						if (createSaleClientName.length() > 20) {
+							help += "客户名称必须20字以内";
+						} else {
+							Sale createSale = new Sale().set("shop_id",createSaleShopId)
+									.set("sale_price", createSalePrice)
+									.set("sale_num", createSaleNum)
+									.set("client_name", createSaleClientName)
+									.set("sale_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+									.set("user_id", user.get("id"));
+							createSale.save();
+							help += "新增销售成功:" + createSale;
+							updateStock(createSaleShopId, userId);
+							help += "\n库存已更新";
+						}
+					} catch (Exception e) {
+						help += "输入格式不正确";
+					}
+					break;
+				case MODIFY_SALE:
+					// 销售编号+销售总价+销售数量+客户名称
+					try {
+						Long modifySaleId = Long.valueOf(arrayStr[0]);
+						Integer modifySalePrice = Integer.valueOf(arrayStr[1]);
+						Integer modifySaleNum = Integer.valueOf(arrayStr[2]);
+						String modifySaleClientName = arrayStr[3];
+						if (modifySaleClientName.length() > 20) {
+							help += "客户名称必须20字以内";
+						} else {
+							Sale modifySale = Sale.dao.findById(modifySaleId);
+							Long modifySaleOwner = modifySale.getLong("user_id");
+							if (user.getLong("id") == modifySaleOwner) {
+								modifySale.set("sale_price", modifySalePrice)
+								.set("sale_num", modifySaleNum)
+								.set("client_name", modifySaleClientName)
+								.set("sale_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+								.update();
+								help += "更新销售成功:" + modifySale;
+								updateStock(modifySale.getLong("shop_id"), userId);
+								help += "\n库存已更新";
+							} else {
+								help += "只有创建者才能管理此销售记录";
+							}
+						}
+					} catch (Exception e) {
+						help += "输入格式不正确";
+					}
+					break;
+				case DELETE_SALE:
+					arrayStr = msg.split("\n");
+					if (arrayStr[0].equals("d")) {
+						try {
+							Long deleteSaleId = Long.valueOf(arrayStr[1]); // 销售编号
+							Sale deleteSale = Sale.dao.findById(deleteSaleId);
+							Long deleteSaleOwner = deleteSale.getLong("user_id");
+							if (user.getLong("id") == deleteSaleOwner) {
+								deleteSale.delete();
+								help += "删除销售记录成功。\n" + deleteSale;
+								updateStock(deleteSale.getLong("shop_id"), userId);
+								help += "\n库存已更新";
+							} else {
+								help += "只有创建者才能管理此销售记录";
 							}
 						} catch (Exception e) {
 							help += "输入格式不正确";
@@ -188,13 +352,17 @@ public class WXController extends Controller {
 					user.set("operation_id", status).update();
 					help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户状态码提示语
 					switch (status) {
-					case QUERY_STATUS:
+					case QUERY_PURCHASE:
+						help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
 						break;
-					case MODIFY_SHOP:
-						
+					case QUERY_SALE:
+						help += "\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
+						break;
+					case QUERY_STOCK:
+						help += "\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
 						break;
 					case QUERY_SHOP:
-						help += "\n<a href=\"" + URL_HEAD + "/api/shops/toShopsPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
+						help += "\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
 						break;
 					default:
 						break;
@@ -223,4 +391,27 @@ public class WXController extends Controller {
 //      response.getWriter().write(xs.toXML(outputMsg));
 		return responseStr;  
     }
+	
+	/**
+	 * 根据商品编号更新库存信息
+	 * @param shopId 商品编号
+	 */
+	private void updateStock(Long shopId, Long userId) {
+		Purchase tmpStock = Purchase.dao.findFirst("select (a.price-b.price) as purchase_price, (a.num-b.num) as purchase_num from (select sum(purchase_price) as price, sum(purchase_num) as num from t_purchase where shop_id = ?) a ,(select sum(sale_price) as price, sum(sale_num) as num from t_sale where shop_id = ?)  b", shopId,shopId);
+		System.out.println("tmpStock:" + tmpStock);
+		Stock stock = Stock.dao.findFirst("select * from t_stock where shop_id = ?", shopId);
+		if (stock == null) {
+			new Stock().set("stock_price", tmpStock.getBigDecimal("purchase_price"))
+			.set("stock_num", tmpStock.getBigDecimal("purchase_num"))
+			.set("stock_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).toString())
+			.set("shop_id", shopId)
+			.set("user_id", userId).save();
+		} else {
+			stock.set("stock_price", tmpStock.getBigDecimal("purchase_price"))
+			.set("stock_num", tmpStock.getBigDecimal("purchase_num"))
+			.set("stock_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+			.set("shop_id", shopId)
+			.set("user_id", userId).update();
+		}
+	}
 }

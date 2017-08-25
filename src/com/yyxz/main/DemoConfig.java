@@ -15,13 +15,16 @@ import com.jfinal.plugin.activerecord.dialect.MysqlDialect;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.template.Engine;
 import com.yyxz.controller.IndexController;
+import com.yyxz.controller.PurchaseController;
+import com.yyxz.controller.SaleController;
 import com.yyxz.controller.ShopController;
+import com.yyxz.controller.StockController;
 import com.yyxz.controller.WXController;
 import com.yyxz.interceptor.AuthInterceptor;
 import com.yyxz.model.Operation;
 import com.yyxz.model.Purchase;
 import com.yyxz.model.Sale;
-import com.yyxz.model.Shops;
+import com.yyxz.model.Shop;
 import com.yyxz.model.Stock;
 import com.yyxz.model.User;
 
@@ -39,7 +42,10 @@ public class DemoConfig extends JFinalConfig {
 	public void configRoute(Routes me) {
 		me.add("/", IndexController.class);
 		me.add("/api/weixin", WXController.class);
-		me.add("/api/shops", ShopController.class);
+		me.add("/api/shop", ShopController.class);
+		me.add("/api/purchase", PurchaseController.class);
+		me.add("/api/sale", SaleController.class);
+		me.add("/api/stock", StockController.class);
 	}
 
 	public void configPlugin(Plugins me) {
@@ -61,7 +67,7 @@ public class DemoConfig extends JFinalConfig {
 		arp.addMapping("t_operation", Operation.class);
 		arp.addMapping("t_purchase", Purchase.class);
 		arp.addMapping("t_sale", Sale.class);
-		arp.addMapping("t_shops", Shops.class);
+		arp.addMapping("t_shop", Shop.class);
 		arp.addMapping("t_stock", Stock.class);
 	}
 

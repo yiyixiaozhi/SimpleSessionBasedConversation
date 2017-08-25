@@ -7,8 +7,8 @@ import com.jfinal.plugin.activerecord.Model;
  * @author bian.xh
  * @date 2017年8月4日13:32:43
  */
-public class Shops extends Model<Shops> {
+public class Shop extends Model<Shop> {
 
-	public static final Shops dao = new Shops();
+	public static final Shop dao = new Shop();
 
 }
