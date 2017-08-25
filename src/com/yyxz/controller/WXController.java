@@ -2,6 +2,7 @@ package com.yyxz.controller;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -133,7 +134,8 @@ public class WXController extends Controller {
 					if (shopName.length() > 50) {
 						help += "名称必须50字以内";
 					} else {
-						shop = new Shops().set("user_id", user.get("id")).set("name", shopName);
+						shop = new Shops().set("user_id", user.get("id")).set("name", shopName)
+								.set("update_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 						shop.save();
 						help += "新增商品成功。" + "\n名称：" + shop.getStr("name") + "\n编号：" + shop.getLong("id") + "\n";
 					}
@@ -146,7 +148,7 @@ public class WXController extends Controller {
 						Shops sp = Shops.dao.findById(shopId);
 						shopOwner = sp.getLong("user_id");
 						if (user.getLong("id") == shopOwner) {
-							sp.set("name", sName).update();
+							sp.set("name", sName).set("update_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date())).update();
 							help += "更新商品成功。" + "\n名称：" + sp.getStr("name") + "\n编号：" + sp.getLong("id") + "\n";
 						} else {
 							help += "只有创建者才能管理此商品";
@@ -202,7 +204,6 @@ public class WXController extends Controller {
 				}
 			}
 			outputMsg.setContent(help);
-//			outputMsg.setContent("你留言：" + inputMsg.getContent() + " 吗？");
 			break;
 		case image: // 获取并返回多图片消息
 			System.out.println("获取多媒体信息");
