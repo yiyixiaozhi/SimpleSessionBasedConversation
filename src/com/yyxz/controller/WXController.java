@@ -372,10 +372,10 @@ public class WXController extends Controller {
 				}
 			}
 			help += "\n-----\n快捷入口：";
-			help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
-			help += "\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
-			help += "\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
-			help += "\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
+			help += "\n\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
+			help += "\n\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
+			help += "\n\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
+			help += "\n\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
 			outputMsg.setContent(help);
 			break;
 		case image: // 获取并返回多图片消息
