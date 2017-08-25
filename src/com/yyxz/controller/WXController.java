@@ -26,22 +26,33 @@ import com.yyxz.weixin.SerializeXmlUtil;
 import com.yyxz.weixin.WXEventType;
 
 public class WXController extends Controller {
-	private static final int QUERY_STATUS = 1;	// 查询状态码
-	private static final int NEW_SHOP = 2;	// 新建商品
+	private static final int QUERY_STATUS = 0;	// 查询状态码
+	private static final int NEW_SHOP = 1;	// 新建商品
+	private static final int DELETE_SHOP = 2; // 删除商品
 	private static final int MODIFY_SHOP = 3;	// 修改商品
-	private static final int QUERY_SHOP = 4;	// 查询商品
-	private static final int DELETE_SHOP = 5; // 删除商品
-	private static final int CREATE_PURCHASE = 6; // 新增进货记录
-	private static final int DELETE_PURCHASE = 7; // 删除进货记录
-	private static final int MODIFY_PURCHASE = 8; // 修改进货记录
-	private static final int QUERY_PURCHASE = 9; // 查询进货记录
-	private static final int CREATE_SALE = 10; // 新增销售记录
-	private static final int DELETE_SALE = 11; // 删除销售记录
-	private static final int MODIFY_SALE = 12; // 修改销售记录
-	private static final int QUERY_SALE = 13; // 查询销售记录
-	private static final int QUERY_STOCK = 14; // 查询库存记录
+//	private static final int QUERY_SHOP = 4;	// 查询商品
+	private static final int CREATE_PURCHASE = 4; // 新增进货记录
+	private static final int DELETE_PURCHASE = 5; // 删除进货记录
+	private static final int MODIFY_PURCHASE = 6; // 修改进货记录
+//	private static final int QUERY_PURCHASE = 9; // 查询进货记录
+	private static final int CREATE_SALE = 7; // 新增销售记录
+	private static final int DELETE_SALE = 8; // 删除销售记录
+	private static final int MODIFY_SALE = 9; // 修改销售记录
+//	private static final int QUERY_SALE = 13; // 查询销售记录
+//	private static final int QUERY_STOCK = 14; // 查询库存记录
 	
 	private static final String URL_HEAD = "http://bxh7425014.vicp.cc/yiyixiaozhi";
+	
+	private static final String HELP = "状态码查询：\n" +
+			"1：新增商品\n" +
+			"2：删除商品\n" +
+			"3：修改商品\n" +
+			"4：新增进货记录\n" +
+			"5：删除进货记录\n" +
+			"6：修改进货记录\n" +
+			"7：新增销售记录\n" +
+			"8：删除销售记录\n" +
+			"9：修改销售记录";
 	/**
 	 * 微信回调的接口
 	 */
@@ -347,31 +358,24 @@ public class WXController extends Controller {
 					break;
 				}
 			} else {	// 数字/状态码消息
-				Operation op = Operation.dao.findById(status);
-				if (op != null) {	// 数据库有用户输入的这个状态码
-					help += "切换到状态：" + status + "\n";
-					user.set("operation_id", status).update();
-					help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户状态码提示语
-					switch (status) {
-					case QUERY_PURCHASE:
-						help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
-						break;
-					case QUERY_SALE:
-						help += "\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
-						break;
-					case QUERY_STOCK:
-						help += "\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
-						break;
-					case QUERY_SHOP:
-						help += "\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
-						break;
-					default:
-						break;
-					}
+				if (status == QUERY_STATUS) {
+					help += HELP;
 				} else {
-					help = "无此状态码：" + status + "\n输入数字1查询状态码";
+					Operation op = Operation.dao.findById(status);
+					if (op != null) {	// 数据库有用户输入的这个状态码
+						help += "切换到状态：" + status + "\n";
+						user.set("operation_id", status).update();
+						help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户状态码提示语
+					} else {
+						help = "无此状态码：" + status + "\n输入数字1查询状态码";
+					}
 				}
 			}
+			help += "\n-----\n快捷入口：";
+			help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
+			help += "\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
+			help += "\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
+			help += "\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
 			outputMsg.setContent(help);
 			break;
 		case image: // 获取并返回多图片消息
