@@ -2,6 +2,7 @@ package com.yyxz.controller;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -193,7 +194,7 @@ public class WXController extends Controller {
 					// 商品编号+进货总价+进货数量+客户名称
 					try {
 						Long createPurchaseShopId = Long.valueOf(arrayStr[0]);
-						Integer createPurchasePrice = Integer.valueOf(arrayStr[1]);
+						Double createPurchasePrice = Double.valueOf(arrayStr[1]);
 						Integer createPurchaseNum = Integer.valueOf(arrayStr[2]);
 						String createPurchaseClientName = arrayStr[3];
 						if (createPurchaseClientName.length() > 20) {
@@ -219,7 +220,7 @@ public class WXController extends Controller {
 					try {
 						Long modifyPurchaseId = Long.valueOf(arrayStr[0]);
 						Integer modifyPurchasePrice = Integer.valueOf(arrayStr[1]);
-						Integer modifyPurchaseNum = Integer.valueOf(arrayStr[2]);
+						Double modifyPurchaseNum = Double.valueOf(arrayStr[2]);
 						String modifyPurchaseClientName = arrayStr[3];
 						if (modifyPurchaseClientName.length() > 20) {
 							help += "客户名称必须20字以内";
@@ -269,7 +270,7 @@ public class WXController extends Controller {
 					// 商品编号+销售总价+销售数量+客户名称
 					try {
 						Long createSaleShopId = Long.valueOf(arrayStr[0]);
-						Integer createSalePrice = Integer.valueOf(arrayStr[1]);
+						Double createSalePrice = Double.valueOf(arrayStr[1]);
 						Integer createSaleNum = Integer.valueOf(arrayStr[2]);
 						String createSaleClientName = arrayStr[3];
 						if (createSaleClientName.length() > 20) {
@@ -294,7 +295,7 @@ public class WXController extends Controller {
 					// 销售编号+销售总价+销售数量+客户名称
 					try {
 						Long modifySaleId = Long.valueOf(arrayStr[0]);
-						Integer modifySalePrice = Integer.valueOf(arrayStr[1]);
+						Double modifySalePrice = Double.valueOf(arrayStr[1]);
 						Integer modifySaleNum = Integer.valueOf(arrayStr[2]);
 						String modifySaleClientName = arrayStr[3];
 						if (modifySaleClientName.length() > 20) {
@@ -397,19 +398,34 @@ public class WXController extends Controller {
 	 * @param shopId 商品编号
 	 */
 	private void updateStock(Long shopId, Long userId) {
-		Purchase tmpStock = Purchase.dao.findFirst("select (a.price-b.price) as purchase_price, (a.num-b.num) as purchase_num from (select sum(purchase_price) as price, sum(purchase_num) as num from t_purchase where shop_id = ?) a ,(select sum(sale_price) as price, sum(sale_num) as num from t_sale where shop_id = ?)  b", shopId,shopId);
+		// 查询是否有销售记录
+		Sale saleRecord = Sale.dao.findFirst("select * from t_sale where shop_id = ?", shopId);
+		Purchase purchaseRecord = Purchase.dao.findFirst("select * from t_purchase where shop_id = ?", shopId);
+		Purchase tmpStock = null;
+		if (saleRecord == null) {	// 无销售记录，以进货记录为准
+			tmpStock = Purchase.dao.findFirst("select sum(purchase_price) as purchase_price, sum(purchase_num) as purchase_num from t_purchase where shop_id = ?", shopId);
+		} else {
+			if (purchaseRecord == null) { //有销售记录，但是无进货记录，直接返回
+				return;
+			} else {	// 有销售和进货记录，库存采用进货-销售记录的方式
+				tmpStock = Purchase.dao.findFirst("select (a.price-b.price) as purchase_price, (a.num-b.num) as purchase_num from (select sum(purchase_price) as price, sum(purchase_num) as num from t_purchase where shop_id = ?) a ,(select sum(sale_price) as price, sum(sale_num) as num from t_sale where shop_id = ?)  b", shopId,shopId);
+			}
+		}
+		BigDecimal stockPrice = tmpStock.getBigDecimal("purchase_price");
+		BigDecimal stockNum = tmpStock.getBigDecimal("purchase_num");
+		String curDatetime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).toString();
 		System.out.println("tmpStock:" + tmpStock);
 		Stock stock = Stock.dao.findFirst("select * from t_stock where shop_id = ?", shopId);
 		if (stock == null) {
-			new Stock().set("stock_price", tmpStock.getBigDecimal("purchase_price"))
-			.set("stock_num", tmpStock.getBigDecimal("purchase_num"))
-			.set("stock_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()).toString())
+			new Stock().set("stock_price", stockPrice)
+			.set("stock_num", stockNum)
+			.set("stock_time", curDatetime)
 			.set("shop_id", shopId)
 			.set("user_id", userId).save();
 		} else {
-			stock.set("stock_price", tmpStock.getBigDecimal("purchase_price"))
-			.set("stock_num", tmpStock.getBigDecimal("purchase_num"))
-			.set("stock_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+			stock.set("stock_price", stockPrice)
+			.set("stock_num", stockNum)
+			.set("stock_time", curDatetime)
 			.set("shop_id", shopId)
 			.set("user_id", userId).update();
 		}

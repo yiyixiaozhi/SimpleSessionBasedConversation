@@ -18,17 +18,21 @@
 		<table>
 			<thead>
 				<tr>
-					<th>编号</th>
-					<th>名称</th>
-					<th>创建/更新时间</th>
+					<th>商品编号</th>
+					<th>商品名称</th>
+					<th>库存商品总价</th>
+					<th>库存商品数量</th>
+					<th>更新时间</th>
 				</tr>
 			</thead>
 			<tbody>
-				<c:forEach items="${shopList}" var="itemData" varStatus="i">
+				<c:forEach items="${stockInfoList}" var="itemData" varStatus="i">
 					<tr>
-						<td>${itemData.id}</td>
-						<td>${itemData.name}</td>
-						<td>${itemData.update_time}</td>
+						<td>${itemData.shop.id}</td>
+						<td>${itemData.shop.name}</td>
+						<td>${itemData.stock.stock_price}</td>
+						<td>${itemData.stock.stock_num}</td>
+						<td>${itemData.stock.stock_time}</td>
 					</tr>
 				</c:forEach>
 			</tbody>

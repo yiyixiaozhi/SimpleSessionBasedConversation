@@ -18,17 +18,25 @@
 		<table>
 			<thead>
 				<tr>
-					<th>编号</th>
-					<th>名称</th>
+					<th>销售编号</th>
+					<th>销售总价</th>
+					<th>销售数量</th>
+					<th>客户名称</th>
 					<th>创建/更新时间</th>
+					<th>商品编号</th>
+					<th>商品名称</th>
 				</tr>
 			</thead>
 			<tbody>
-				<c:forEach items="${shopList}" var="itemData" varStatus="i">
+				<c:forEach items="${saleInfoList}" var="itemData" varStatus="i">
 					<tr>
-						<td>${itemData.id}</td>
-						<td>${itemData.name}</td>
-						<td>${itemData.update_time}</td>
+						<td>${itemData.sale.id}</td>
+						<td>${itemData.sale.sale_price}</td>
+						<td>${itemData.sale.sale_num}</td>
+						<td>${itemData.sale.client_name}</td>
+						<td>${itemData.sale.sale_time}</td>
+						<td>${itemData.shop.id}</td>
+						<td>${itemData.shop.name}</td>
 					</tr>
 				</c:forEach>
 			</tbody>
