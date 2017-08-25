@@ -13,7 +13,7 @@
 		<h1 id="zhilog">
 			<a name="user-content-zhilog" href="#zhilog"
 				class="headeranchor-link" aria-hidden="true"><span
-				class="headeranchor"></span> </a>商品明细
+				class="headeranchor"></span> </a>销售明细
 		</h1>
 		<table>
 			<thead>
