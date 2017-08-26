@@ -141,7 +141,10 @@ public class WXController extends Controller {
 			if (status == null) {	// 文本消息
 				System.out.println("查询到用户：" + user);
 				Operation op = Operation.dao.findById(userCurrentOperationId);
-				String[] arrayStr = msg.split("+");
+				String[] arrayStr = null;
+				if (msg.contains("+")) {
+					arrayStr = msg.split("+");
+				}
 				Shop shop;
 				Long shopId;
 				String shopName;
