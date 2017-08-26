@@ -9,7 +9,7 @@ public class ShopController extends Controller {
 	
 	public void toShopPage() {
 		Long userId = getParaToLong("userId");
-		List<Shop> shopList = Shop.dao.find("select * from t_shop where user_id = ?", userId);
+		List<Shop> shopList = Shop.dao.find("select * from t_shop where user_id = ? order by update_time desc", userId);
 		setAttr("shopList", shopList);
 		renderJsp("/WEB-INF/jsp/show_shop.jsp");
 	}

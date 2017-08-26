@@ -26,7 +26,7 @@ import com.yyxz.weixin.SerializeXmlUtil;
 import com.yyxz.weixin.WXEventType;
 
 public class WXController extends Controller {
-	private static final int QUERY_STATUS = 0;	// 查询状态码
+	private static final int QUERY_STATUS = 0;	// 查询指令码
 	private static final int NEW_SHOP = 1;	// 新建商品
 	private static final int DELETE_SHOP = 2; // 删除商品
 	private static final int MODIFY_SHOP = 3;	// 修改商品
@@ -43,16 +43,10 @@ public class WXController extends Controller {
 	
 	private static final String URL_HEAD = "http://bxh7425014.vicp.cc/yiyixiaozhi";
 	
-	private static final String HELP = "状态码查询：\n" +
-			"1：新增商品\n" +
-			"2：删除商品\n" +
-			"3：修改商品\n" +
-			"4：新增进货记录\n" +
-			"5：删除进货记录\n" +
-			"6：修改进货记录\n" +
-			"7：新增销售记录\n" +
-			"8：删除销售记录\n" +
-			"9：修改销售记录";
+	private static final String HELP = "“进销存”对话指令查询：\n" +
+			"商品管理{1:新增,2:删除,3:修改}\n" +
+			"进货管理{4:新增,5:删除,6:修改}\n" +
+			"销售管理{7:新增,8:删除,9:修改}";
 	/**
 	 * 微信回调的接口
 	 */
@@ -142,18 +136,17 @@ public class WXController extends Controller {
 				//e.printStackTrace();
 			}
 			String help = "";
-			System.out.println("用户发送状态码：" + status);
+			System.out.println("用户发送指令：" + status);
+			Integer userCurrentOperationId = user.getInt("operation_id");	// 从数据库获取当前指令，根据指令解析文本消息
 			if (status == null) {	// 文本消息
-				Integer operationId = user.getInt("operation_id");	// 从数据库获取当前状态码，根据状态码解析文本消息
-				help += "当前状态：" + operationId + "\n";
 				System.out.println("查询到用户：" + user);
-				Operation op = Operation.dao.findById(operationId);
-				String[] arrayStr = msg.split("\n");
+				Operation op = Operation.dao.findById(userCurrentOperationId);
+				String[] arrayStr = msg.split("+");
 				Shop shop;
 				Long shopId;
 				String shopName;
 				Long shopOwner;
-				switch (operationId) {
+				switch (userCurrentOperationId) {
 				case NEW_SHOP:
 					shopName = msg;
 					if (shopName.length() > 50) {
@@ -182,7 +175,7 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_SHOP:
-					arrayStr = msg.split("\n");
+					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							shopId = Long.valueOf(arrayStr[1]); // 商品编号
@@ -205,22 +198,31 @@ public class WXController extends Controller {
 					// 商品编号+进货总价+进货数量+客户名称
 					try {
 						Long createPurchaseShopId = Long.valueOf(arrayStr[0]);
-						Double createPurchasePrice = Double.valueOf(arrayStr[1]);
-						Integer createPurchaseNum = Integer.valueOf(arrayStr[2]);
-						String createPurchaseClientName = arrayStr[3];
-						if (createPurchaseClientName.length() > 20) {
-							help += "客户名称必须20字以内";
+						Shop createPurchaseShop = Shop.dao.findById(createPurchaseShopId);
+						if (createPurchaseShop == null) {
+							help += "此商品不存在";
 						} else {
-							Purchase createPurchase = new Purchase().set("shop_id",createPurchaseShopId)
-									.set("purchase_price", createPurchasePrice)
-									.set("purchase_num", createPurchaseNum)
-									.set("client_name", createPurchaseClientName)
-									.set("purchase_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
-									.set("user_id", user.get("id"));
-							createPurchase.save();
-							help += "新增进货成功:" + createPurchase;
-							updateStock(createPurchaseShopId, userId);
-							help += "\n库存已更新";
+							if (user.getLong("id") == createPurchaseShop.getLong("user_id")) {
+								Double createPurchasePrice = Double.valueOf(arrayStr[1]);
+								Integer createPurchaseNum = Integer.valueOf(arrayStr[2]);
+								String createPurchaseClientName = arrayStr[3];
+								if (createPurchaseClientName.length() > 20) {
+									help += "客户名称必须20字以内";
+								} else {
+									Purchase createPurchase = new Purchase().set("shop_id",createPurchaseShopId)
+											.set("purchase_price", createPurchasePrice)
+											.set("purchase_num", createPurchaseNum)
+											.set("client_name", createPurchaseClientName)
+											.set("purchase_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+											.set("user_id", user.get("id"));
+									createPurchase.save();
+									help += "新增进货成功:" + createPurchase;
+									updateStock(createPurchaseShopId, userId);
+									help += "\n库存已更新";
+								}
+							} else {
+								help += "此商品不是您创建的";
+							}
 						}
 					} catch (Exception e) {
 						help += "输入格式不正确";
@@ -238,7 +240,7 @@ public class WXController extends Controller {
 						} else {
 							Purchase modifyPurchase = Purchase.dao.findById(modifyPurchaseId);
 							Long modifyPurchaseOwner = modifyPurchase.getLong("user_id");
-							if (user.getLong("id") == modifyPurchaseOwner) {
+							if (userId == modifyPurchaseOwner) {
 								modifyPurchase.set("purchase_price", modifyPurchasePrice)
 								.set("purchase_num", modifyPurchaseNum)
 								.set("client_name", modifyPurchaseClientName)
@@ -256,7 +258,7 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_PURCHASE:
-					arrayStr = msg.split("\n");
+					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							Long deletePurchaseId = Long.valueOf(arrayStr[1]); // 进货编号
@@ -281,22 +283,31 @@ public class WXController extends Controller {
 					// 商品编号+销售总价+销售数量+客户名称
 					try {
 						Long createSaleShopId = Long.valueOf(arrayStr[0]);
-						Double createSalePrice = Double.valueOf(arrayStr[1]);
-						Integer createSaleNum = Integer.valueOf(arrayStr[2]);
-						String createSaleClientName = arrayStr[3];
-						if (createSaleClientName.length() > 20) {
-							help += "客户名称必须20字以内";
+						Shop createSaleShop = Shop.dao.findById(createSaleShopId);
+						if (createSaleShop == null) {
+							help += "此商品不存在";
 						} else {
-							Sale createSale = new Sale().set("shop_id",createSaleShopId)
-									.set("sale_price", createSalePrice)
-									.set("sale_num", createSaleNum)
-									.set("client_name", createSaleClientName)
-									.set("sale_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
-									.set("user_id", user.get("id"));
-							createSale.save();
-							help += "新增销售成功:" + createSale;
-							updateStock(createSaleShopId, userId);
-							help += "\n库存已更新";
+							if (userId == createSaleShop.getLong("user_id")) {
+								Double createSalePrice = Double.valueOf(arrayStr[1]);
+								Integer createSaleNum = Integer.valueOf(arrayStr[2]);
+								String createSaleClientName = arrayStr[3];
+								if (createSaleClientName.length() > 20) {
+									help += "客户名称必须20字以内";
+								} else {
+									Sale createSale = new Sale().set("shop_id",createSaleShopId)
+											.set("sale_price", createSalePrice)
+											.set("sale_num", createSaleNum)
+											.set("client_name", createSaleClientName)
+											.set("sale_time", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()))
+											.set("user_id", user.get("id"));
+									createSale.save();
+									help += "新增销售成功:" + createSale;
+									updateStock(createSaleShopId, userId);
+									help += "\n库存已更新";
+								}
+							} else {
+								help += "此商品不是您创建的";
+							}
 						}
 					} catch (Exception e) {
 						help += "输入格式不正确";
@@ -332,7 +343,7 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_SALE:
-					arrayStr = msg.split("\n");
+					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							Long deleteSaleId = Long.valueOf(arrayStr[1]); // 销售编号
@@ -357,25 +368,25 @@ public class WXController extends Controller {
 					help += op.getStr("operation_help");
 					break;
 				}
-			} else {	// 数字/状态码消息
+			} else {	// 数字/指令消息
 				if (status == QUERY_STATUS) {
 					help += HELP;
 				} else {
 					Operation op = Operation.dao.findById(status);
-					if (op != null) {	// 数据库有用户输入的这个状态码
-						help += "切换到状态：" + status + "\n";
+					if (op != null) {	// 数据库有用户输入的这个指令码
+						help += "切换到指令：" + status + "\n";
 						user.set("operation_id", status).update();
-						help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户状态码提示语
+						help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户指令提示语
 					} else {
-						help = "无此状态码：" + status + "\n输入数字1查询状态码";
+						help = "无此指令：" + status + "\n输入数字0查询指令";
 					}
 				}
 			}
-			help += "\n-----\n快捷入口：";
-			help += "\n\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>" ;
-			help += "\n\n<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>" ;
-			help += "\n\n<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>" ;
-			help += "\n\n<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
+			help += "\n---分割线---\n当前指令" + userCurrentOperationId + ",输入0查询帮助，快捷入口：";
+			help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">点击查询进货明细</a>、" ;
+			help += "<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">点击查询销售明细</a>、" ;
+			help += "<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">点击查询存货明细</a>、" ;
+			help += "<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">点击查询商品明细</a>" ;  
 			outputMsg.setContent(help);
 			break;
 		case image: // 获取并返回多图片消息

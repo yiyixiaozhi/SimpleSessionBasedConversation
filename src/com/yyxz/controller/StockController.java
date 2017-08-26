@@ -11,7 +11,7 @@ public class StockController extends Controller {
 	
 	public void toStockPage() {
 		Long userId = getParaToLong("userId");
-		List<Stock> stockList = Stock.dao.find("select * from t_stock where user_id = ?", userId);
+		List<Stock> stockList = Stock.dao.find("select * from t_stock where user_id = ? order by stock_time desc", userId);
 		List<StockInfo> stockInfoList = new ArrayList<StockController.StockInfo>();
 		for (Stock s : stockList) {
 			Shop sp = Shop.dao.findById(s.getLong("shop_id"));

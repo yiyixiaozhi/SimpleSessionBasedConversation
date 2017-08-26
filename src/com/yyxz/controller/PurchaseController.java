@@ -11,7 +11,7 @@ public class PurchaseController extends Controller {
 	
 	public void toPurchasePage() {
 		Long userId = getParaToLong("userId");
-		List<Purchase> purchaseList = Purchase.dao.find("select * from t_purchase where user_id = ?", userId);
+		List<Purchase> purchaseList = Purchase.dao.find("select * from t_purchase where user_id = ? order by purchase_time desc", userId);
 		List<PurchaseInfo> purchaseInfoList = new ArrayList<PurchaseInfo>();
 		for (Purchase p : purchaseList) {
 			Shop sp = Shop.dao.findById(p.getLong("shop_id"));

@@ -11,7 +11,7 @@ public class SaleController extends Controller {
 	
 	public void toSalePage() {
 		Long userId = getParaToLong("userId");
-		List<Sale> saleList = Sale.dao.find("select * from t_sale where user_id = ?", userId);
+		List<Sale> saleList = Sale.dao.find("select * from t_sale where user_id = ? order by sale_time desc", userId);
 		List<SaleInfo> saleInfoList = new ArrayList<SaleInfo>();
 		for (Sale s : saleList) {
 			Shop sp = Shop.dao.findById(s.getLong("shop_id"));
