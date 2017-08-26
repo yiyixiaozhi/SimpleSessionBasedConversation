@@ -32,7 +32,8 @@ import com.yyxz.model.User;
  * Created by Czl on 2015/7/21.
  */
 public class DemoConfig extends JFinalConfig {
-
+	public static int COMMON_TABLE_PAGESIZE = 30;	// 默认使用30个
+	
 	public void configConstant(Constants me) {
 		// 加载少量必要配置，随后可用PropKit.get(...)获取值
 		PropKit.use("main/resources/a_little_config.txt");
@@ -69,6 +70,11 @@ public class DemoConfig extends JFinalConfig {
 		arp.addMapping("t_sale", Sale.class);
 		arp.addMapping("t_shop", Shop.class);
 		arp.addMapping("t_stock", Stock.class);
+		try {
+			COMMON_TABLE_PAGESIZE = Integer.valueOf(PropKit.get("COMMON_TABLE_PAGESIZE"));
+		} catch (NumberFormatException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void configInterceptor(Interceptors me) {

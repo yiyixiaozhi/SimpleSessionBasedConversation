@@ -20,3 +20,6 @@ YYXZ_Token=yiyixiaozhi
 #appId=wx00222e361fdea5f4
 #appSecret=3f1ea1d93b591ee71d68347e7976e52c
 #YYXZ_Token=yiyixiaozhi
+
+# 默认查询结果每页展示的数据数目
+COMMON_TABLE_PAGESIZE=30

@@ -58,7 +58,7 @@ $(document).ready(function(){
 						if (data == null) {
 							alert('无任何数据，请检查接口是否正确');
 						} else {
-							var list = data.articleList;
+							var list = data.itemDataList;
 							if(list != null){
 								if(list.length <= 0){
 									// 再往下已经没有数据

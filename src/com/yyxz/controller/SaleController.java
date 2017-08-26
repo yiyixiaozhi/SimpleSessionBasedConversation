@@ -1,24 +1,46 @@
 package com.yyxz.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.jfinal.core.Controller;
+import com.jfinal.plugin.activerecord.Page;
+import com.yyxz.main.DemoConfig;
 import com.yyxz.model.Sale;
 import com.yyxz.model.Shop;
 
 public class SaleController extends Controller {
-	
 	public void toSalePage() {
 		Long userId = getParaToLong("userId");
-		List<Sale> saleList = Sale.dao.find("select * from t_sale where user_id = ? order by sale_time desc", userId);
-		List<SaleInfo> saleInfoList = new ArrayList<SaleInfo>();
-		for (Sale s : saleList) {
-			Shop sp = Shop.dao.findById(s.getLong("shop_id"));
-			saleInfoList.add(new SaleInfo(sp, s));
-		}
+		Page<Sale> page = Sale.dao.getSalePage(1, DemoConfig.COMMON_TABLE_PAGESIZE, userId);
+		List<SaleInfo> saleInfoList = packageSaleInfoList(page);
+		setAttr("userId", userId);
+		setAttr("pageNumber", 1);
+		setAttr("pageSize", DemoConfig.COMMON_TABLE_PAGESIZE);
 		setAttr("saleInfoList", saleInfoList);
 		renderJsp("/WEB-INF/jsp/show_sale.jsp");
+	}
+	
+	public void toSalePageByIndex() {
+		Long userId = getParaToLong("userId");
+		Integer pageNumber = getParaToInt("pageNumber");
+		Integer pageSize = getParaToInt("pageSize");
+		Page<Sale> page = Sale.dao.getSalePage(pageNumber, pageSize, userId);
+		List<SaleInfo> itemDataList = packageSaleInfoList(page);
+		Map<String, Object> dataMaps = new HashMap<String, Object>();
+		dataMaps.put("itemDataList", itemDataList);
+		renderJson(dataMaps);
+	}
+	
+	public List<SaleInfo> packageSaleInfoList(Page<Sale> page) {
+		List<SaleInfo> infoList = new ArrayList<SaleInfo>();
+		for (Sale p : page.getList()) {
+			Shop sp = Shop.dao.findById(p.getLong("shop_id"));
+			infoList.add(new SaleInfo(sp, p));
+		}
+		return infoList;
 	}
 	
 	public class SaleInfo {
