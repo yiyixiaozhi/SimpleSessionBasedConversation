@@ -5,6 +5,6 @@
 <base href="${pageContext.request.scheme }://${pageContext.request.serverName }:${pageContext.request.serverPort }${pageContext.request.contextPath}/" />
 <!-- <link rel="stylesheet" href="resources/libs/example/example.css"/>
 <link rel="stylesheet" href="resources/libs/style/weui.min.css"/>
-<link rel="stylesheet" href="resources/front/css/common.css"/>
-<script src="resources/libs/example/zepto.min.js"></script>
-<script src="resources/libs/flexible.js"></script> -->
+<link rel="stylesheet" href="resources/front/css/common.css"/> 
+<script src="resources/libs/flexible.js"></script>-->
+<script src="resources/libs/zepto.min.v1.2.0.js"></script>
