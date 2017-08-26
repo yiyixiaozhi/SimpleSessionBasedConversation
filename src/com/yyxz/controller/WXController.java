@@ -375,6 +375,7 @@ public class WXController extends Controller {
 					Operation op = Operation.dao.findById(status);
 					if (op != null) {	// 数据库有用户输入的这个指令码
 						help += "切换到指令：" + status + "\n";
+						userCurrentOperationId = status;
 						user.set("operation_id", status).update();
 						help += op.getStr("operation_help").replace("\\n", "\n");	// 反馈给用户指令提示语
 					} else {
@@ -383,9 +384,9 @@ public class WXController extends Controller {
 				}
 			}
 			help += "\n---分割线---\n当前指令" + userCurrentOperationId + ",输入0查询帮助，快捷入口：";
-			help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">查进货、</a>、" ;
-			help += "<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">查销售、</a>、" ;
-			help += "<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">查存货、</a>、" ;
+			help += "\n<a href=\"" + URL_HEAD + "/api/purchase/toPurchasePage?userId=" + user.get("id") + "\">查进货</a>、" ;
+			help += "<a href=\"" + URL_HEAD + "/api/sale/toSalePage?userId=" + user.get("id") + "\">查销售</a>、" ;
+			help += "<a href=\"" + URL_HEAD + "/api/stock/toStockPage?userId=" + user.get("id") + "\">查存货</a>、" ;
 			help += "<a href=\"" + URL_HEAD + "/api/shop/toShopPage?userId=" + user.get("id") + "\">查商品</a>" ;  
 			outputMsg.setContent(help);
 			break;
