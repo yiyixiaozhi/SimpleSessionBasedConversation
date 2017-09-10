@@ -8,6 +8,17 @@
 		<session-timeout>60</session-timeout>
 	</session-config>
 
+
+	<!--web.xml部分 -->
+<!-- 	<servlet>
+		<servlet-name>WebSocket</servlet-name>
+		<servlet-class>com.test.TestWebSocketServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>WebSocket</servlet-name>
+		<url-pattern>/ws/test.ws</url-pattern>
+	</servlet-mapping> -->
+
 	<filter>
 		<filter-name>jfinal</filter-name>
 		<filter-class>com.jfinal.core.JFinalFilter</filter-class>
@@ -20,9 +31,10 @@
 		<filter-name>jfinal</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
+
 	<display-name></display-name>
 	<welcome-file-list>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
+
 </web-app>

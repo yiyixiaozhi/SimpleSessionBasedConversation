@@ -142,8 +142,8 @@ public class WXController extends Controller {
 				System.out.println("查询到用户：" + user);
 				Operation op = Operation.dao.findById(userCurrentOperationId);
 				String[] arrayStr = null;
-				if (msg.contains("\\+")) {
-					arrayStr = msg.split("+");
+				if (msg.contains("+")) {
+					arrayStr = msg.split("\\+");
 				}
 				Shop shop;
 				Long shopId;
@@ -178,7 +178,6 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_SHOP:
-					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							shopId = Long.valueOf(arrayStr[1]); // 商品编号
@@ -261,7 +260,6 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_PURCHASE:
-					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							Long deletePurchaseId = Long.valueOf(arrayStr[1]); // 进货编号
@@ -346,7 +344,6 @@ public class WXController extends Controller {
 					}
 					break;
 				case DELETE_SALE:
-					arrayStr = msg.split("+");
 					if (arrayStr[0].equals("d")) {
 						try {
 							Long deleteSaleId = Long.valueOf(arrayStr[1]); // 销售编号
