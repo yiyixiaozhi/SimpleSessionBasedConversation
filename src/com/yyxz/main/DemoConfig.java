@@ -87,8 +87,7 @@ public class DemoConfig extends JFinalConfig {
 
 	public void configHandler(Handlers me) {
 		me.add(new ContextPathHandler("ctx"));
-		me.add(new ZhiWebSocketHandler("^/websocket"));
-//		me.add(new UrlSkipHandler("^/websocket", false));
+		me.add(new UrlSkipHandler("^/websocket", false));
 	}
 
 	@Override
