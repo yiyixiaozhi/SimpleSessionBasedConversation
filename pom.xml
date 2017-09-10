@@ -18,13 +18,13 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<dependency>
+<!--  		<dependency>
 			<groupId>javax.websocket</groupId>
 			<artifactId>javax.websocket-api</artifactId>
 			<version>1.1</version>
 			<scope>provided</scope>
-		</dependency>
-		<dependency>
+		</dependency> -->
+ 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>
 			<version>7.0</version>

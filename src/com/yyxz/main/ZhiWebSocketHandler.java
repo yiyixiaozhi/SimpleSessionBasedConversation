@@ -22,8 +22,10 @@ public class ZhiWebSocketHandler extends Handler {
 		// TODO Auto-generated method stub
 		if (filterUrlRegxPattern.matcher(target).find())
 			return ;
-		else
+		else {
+//			target = "/websocket";
 			next.handle(target, request, response, isHandled);
+		}
 	}
 
 }
