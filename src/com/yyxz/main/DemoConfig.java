@@ -38,6 +38,7 @@ public class DemoConfig extends JFinalConfig {
 	public void configConstant(Constants me) {
 		// 加载少量必要配置，随后可用PropKit.get(...)获取值
 		PropKit.use("main/resources/a_little_config.txt");
+		WXController.URL_HEAD = PropKit.get("URL_HEAD");
 		me.setDevMode(true);
 	}
 
@@ -87,6 +88,7 @@ public class DemoConfig extends JFinalConfig {
 
 	public void configHandler(Handlers me) {
 		me.add(new ContextPathHandler("ctx"));
+//        me.add(new ZhiWebSocketHandler("^/websocket"));
 		me.add(new UrlSkipHandler("^/websocket", false));
 	}
 

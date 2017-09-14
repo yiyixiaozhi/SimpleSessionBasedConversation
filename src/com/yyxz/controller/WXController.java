@@ -41,7 +41,7 @@ public class WXController extends Controller {
 //	private static final int QUERY_SALE = 13; // 查询销售记录
 //	private static final int QUERY_STOCK = 14; // 查询库存记录
 	
-	private static final String URL_HEAD = "http://bxh7425014.vicp.cc/yiyixiaozhi";
+	public static String URL_HEAD = "";
 	
 	private static final String HELP = "“进销存”对话指令查询：\n" +
 			"商品管理{1:新增,2:删除,3:修改}\n" +

@@ -11,6 +11,9 @@ authUrl=/api/test/toAPage,/api/test/toBPage
 redirectUri=http://bxh7425014.vicp.cc/yiyixiaozhi/api/user/callBack
 Uri=http://bxh7425014.vicp.cc
 
+#网页访问前缀
+URL_HEAD=http://bxh7425014.vicp.cc/yiyixiaozhi
+
 # 一一小知微信正式号配置
 appId=wx548b592be1b05b62
 appSecret=72512d739ad5ceda7a5962d6eee35aa2
