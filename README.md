@@ -1,0 +1,2 @@
+# SimpleSessionBasedConversation
+基于Jinal框架使用，用户关注微信订阅号后，通过会话完成商品进销存功能。
